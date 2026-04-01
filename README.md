@@ -6,14 +6,32 @@ Use SQL to query EOL dates for major softwares and middlewares.
 
 ## Quick start
 
-Install the plugin locally (require go):
+Recommended: use `mise` to install the project Go version.
+
+Install `mise`, then from the project root:
+
+```shell
+mise use go@1.24
+go version
+```
+
+A `mise.toml` file is provided in this repository:
+
+```toml
+[tools]
+go = "1.24"
+```
+
+Install the plugin locally:
 
 ```shell
 git clone git@git.sk5.io:skale-5/run/steampipe/steampipe-plugin-eol.git
 cd steampipe-plugin-eol/
+mise install
 mkdir -p ~/.steampipe/plugins/local/steampipe-plugin-eol
-go build -o ~/.steampipe/plugins/local/steampipe-plugin-eol/steampipe-plugin-eol.plugin 
+mise exec go -- go build -ldflags='-linkmode=external' -o ~/.steampipe/plugins/local/steampipe-plugin-eol/steampipe-plugin-eol.plugin
 cp config/* ~/.steampipe/config
+steampipe service restart
 ```
 
 Run a query:

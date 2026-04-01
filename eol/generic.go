@@ -21,7 +21,9 @@ type Eol struct {
 	LatestReleaseDate string      `json:"latestReleaseDate",omitempty`
 	Lts               interface{} `json:"lts,omitempty"`
 	Eol               interface{} `json:"eol",omitempty`
+	ExtendedSupport   interface{} `json:"extendedSupport,omitempty"`
 	DaysToEol         int
+	DaysToExtendedEol int
 }
 
 func tableGeneric(tech string) *plugin.Table {
@@ -38,6 +40,8 @@ func tableGeneric(tech string) *plugin.Table {
 			{Name: "eol", Type: proto.ColumnType_STRING, Description: "End of life date"},
 			{Name: "latest", Type: proto.ColumnType_STRING, Description: "Latest patch release"},
 			{Name: "latest_release_date", Type: proto.ColumnType_STRING, Description: "Latest patch release date"},
+			{Name: "extended_support", Type: proto.ColumnType_STRING, Description: "Extended support end date, or N/A if unavailable"},
+			{Name: "days_to_extended_eol", Type: proto.ColumnType_INT, Description: "Days remaining before extended support ends, or -1 if unavailable"},
 			{Name: "lts", Type: proto.ColumnType_BOOL, Description: "Is it an LTS release ?"},
 			{Name: "days_to_eol", Type: proto.ColumnType_INT, Description: "Days remaining before EOL"},
 		},
@@ -79,6 +83,19 @@ func listGeneric(tech string) func(ctx context.Context, d *plugin.QueryData, h *
 			if reflect.TypeOf(v.Lts).Kind() == reflect.String {
 				v.Lts = false
 			}
+
+			switch value := v.ExtendedSupport.(type) {
+			case string:
+				if strings.TrimSpace(value) != "" {
+					v.ExtendedSupport = value
+					extendedSupportTime, _ := time.Parse("2006-01-02", value)
+					v.DaysToExtendedEol = int(extendedSupportTime.Sub(now).Hours() / 24)
+				}
+			default:
+				v.ExtendedSupport = "N/A"
+				v.DaysToExtendedEol = -1
+			}
+
 			eol := v.Eol.(string)
 			time, _ := time.Parse("2006-01-02", eol)
 			v.DaysToEol = int(time.Sub(now).Hours() / 24)

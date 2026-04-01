@@ -32,6 +32,8 @@ func PluginTables(ctx context.Context, d *plugin.TableMapData) (map[string]*plug
 		return nil, err
 	}
 
+	defer resp.Body.Close()
+
 	var products []string
 	err = json.NewDecoder(resp.Body).Decode(&products)
 
